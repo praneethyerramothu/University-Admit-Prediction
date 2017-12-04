@@ -457,7 +457,7 @@ ui <- dashboardPage( skin = 'purple',
       tabItem(tabName = "TestResults",
               fluidRow(
                 box(title="University Admit Probability",status = 'primary',
-                  plotOutput("plot",height = '450')),
+                  plotOutput("plot",height = '350')),
                 box(
                   title="Result's",
                   status = "warning",
@@ -471,7 +471,7 @@ ui <- dashboardPage( skin = 'purple',
               box( height='350',
                 textInput(inputId = "GRE",
                           label = "Enter Your Gre score",
-                          value = 300),
+                          value = 200),
                 textInput(inputId = "Toefl",
                           label = "Enter Your Toefl score",
                           value = 120),
@@ -485,21 +485,12 @@ ui <- dashboardPage( skin = 'purple',
                             min = 1,
                             max = 10,
                             value = 300),
-               actionButton('action1','show Text')
+               actionButton('action1','predict')
               ),
               box(
-                title = 'userinput',
+                title = 'Prediction For User Input.',
                 status = 'warning',
                 tableOutput('table1')
-              ),
-              box(
-                textInput('text1',"Enter your name : "),
-                textInput('text2','Enter your email address'),
-                actionButton('action','Update email.')
-              ),
-              box(
-                textOutput('txt1'),
-                textOutput('txt2')
               )
       )
     )
@@ -522,9 +513,9 @@ server <- function(input, output) {
   )
  
   output$table<-renderTable({slidervalues()})
-  slidervalues1<-reactive(
+  slidervalues1<-eventReactive(input$action1,
     {
-      test<-scale(c(300,3,98,87))
+      test<-scale(c(as.numeric(input$GRE),as.numeric(input$Toefl),as.numeric(input$AWA),as.numeric(input$per)))
       mtu_pred<-predict(MTUclassifier,newdata = test,type = 'raw')
       mtu_pred<-mtu_pred[1]
       mtu_pred[2]<-"MTU"
@@ -550,19 +541,13 @@ server <- function(input, output) {
       
     }
   )
-  output$table1<-renderText({
-    input$action1
-    isolate(
-      #slidervalues1()
-      paste("Testing the predict button !")
-    )
+  output$table1<-renderTable({
+    
+      slidervalues1()
+      #paste("Testing the predict button !")
+    
     })
-   output$txt1<-renderText({paste("My name is ",input$text1)})
-   output$txt2<-renderText({
-     input$action
-     
-     isolate(paste("My email address is ",input$text2))
-   })
+   
 }
   
 
